@@ -3,5 +3,7 @@
     <style name="Base.Theme.Ticky" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="android:fontFamily">@font/kanitsb</item>
+        <item name="fontFamily">@font/kanitsb</item>
     </style>
 </resources>
