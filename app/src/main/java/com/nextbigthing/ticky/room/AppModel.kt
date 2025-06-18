@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 @Entity
 data class AppModel(
     @PrimaryKey(autoGenerate = true) val uid: Int,
-    @ColumnInfo(name = "task") val task: String?
+    @ColumnInfo(name = "task") val task: String?,
+    @ColumnInfo(name = "isChecked") var isChecked: Boolean?
 )

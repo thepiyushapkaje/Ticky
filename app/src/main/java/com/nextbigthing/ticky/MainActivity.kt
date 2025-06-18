@@ -50,12 +50,13 @@ class MainActivity : AppCompatActivity(), DeleteUser {
 
             submitButton.setOnClickListener {
                 val taskTitle = taskTitleEditText.text.toString()
+                Log.d("TAGGER", "onCreate: $taskTitle")
                 CoroutineScope(Dispatchers.IO).launch {
                     val database = Room.databaseBuilder(
                         applicationContext,
                         AppDatabase::class.java, "database-name"
                     ).build()
-                    database.appDao().insertUser(AppModel(0, task = taskTitle))
+                    database.appDao().insertUser(AppModel(0, task = taskTitle, false))
                     refreshData()
                 }
                 dialog.dismiss() // Optional: dismiss dialog after submitting
@@ -101,12 +102,16 @@ class MainActivity : AppCompatActivity(), DeleteUser {
                 applicationContext,
                 AppDatabase::class.java, "database-name"
             ).build()
-            val users: List<AppModel> = database.appDao().getAll()
+            val users: MutableList<AppModel> = database.appDao().getAll().toMutableList()
+
             runOnUiThread {
-                todoListRecyclerAdapter = TodoListRecyclerAdapter(users, this@MainActivity)
+                todoListRecyclerAdapter = TodoListRecyclerAdapter(users, this@MainActivity) {
+                    updateProgressBar() // gets called on checkbox change
+                }
                 binding.recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
                 binding.recyclerView.adapter = todoListRecyclerAdapter
                 todoListRecyclerAdapter.notifyDataSetChanged()
+                updateProgressBar() // Initial set
             }
         }
     }
@@ -120,5 +125,15 @@ class MainActivity : AppCompatActivity(), DeleteUser {
             database.appDao().deleteUser(user)
             refreshData()
         }
+    }
+
+    private fun updateProgressBar() {
+        val total = todoListRecyclerAdapter.itemCount
+        val checked = todoListRecyclerAdapter.getCheckedItemCount()
+        val progress = if (total > 0) (checked.toFloat() / total) * 100 else 0f
+        binding.circularProgressBar.setProgressWithAnimation(progress, 500)
+
+        val formattedProgress = String.format("%.1f", progress)
+        binding.progressTextView.text = "$formattedProgress %"
     }
 }
