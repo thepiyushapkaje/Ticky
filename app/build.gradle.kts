@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation ("com.mikhaellopez:circularprogressbar:3.1.0")
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.core.ktx)
