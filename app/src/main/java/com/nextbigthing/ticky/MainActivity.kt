@@ -1,6 +1,9 @@
 package com.nextbigthing.ticky
 
 import android.app.AlertDialog
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -19,6 +22,7 @@ import com.nextbigthing.ticky.room.AppModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity(), DeleteUser {
 
@@ -105,15 +109,37 @@ class MainActivity : AppCompatActivity(), DeleteUser {
             val users: MutableList<AppModel> = database.appDao().getAll().toMutableList()
 
             runOnUiThread {
-                todoListRecyclerAdapter = TodoListRecyclerAdapter(users, this@MainActivity) {
-                    updateProgressBar() // gets called on checkbox change
-                }
+                todoListRecyclerAdapter = TodoListRecyclerAdapter(
+                    users,
+                    this@MainActivity,
+                    onCheckChanged = { updateProgressBar() },
+                    updateCheckState = { model ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            database.appDao().updateUser(model)
+                            withContext(Dispatchers.Main) {
+                                updateWidget() // trigger widget update
+                            }
+                        }
+                    }
+                )
                 binding.recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
                 binding.recyclerView.adapter = todoListRecyclerAdapter
                 todoListRecyclerAdapter.notifyDataSetChanged()
-                updateProgressBar() // Initial set
+                updateProgressBar()
             }
         }
+    }
+
+    private fun updateWidget() {
+        val context = applicationContext
+        val intent = Intent(context, TodoWidgetProvider::class.java)
+        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+        val ids = AppWidgetManager.getInstance(context)
+            .getAppWidgetIds(ComponentName(context, TodoWidgetProvider::class.java))
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+
+        context.sendBroadcast(intent)
     }
 
     override fun deleteUserFromDb(user: AppModel) {

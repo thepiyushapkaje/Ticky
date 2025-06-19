@@ -11,7 +11,8 @@ import com.nextbigthing.ticky.room.AppModel
 class TodoListRecyclerAdapter(
     private val list: MutableList<AppModel>,
     private val deleteUser: DeleteUser,
-    private val onCheckChanged: () -> Unit // new callback
+    private val onCheckChanged: () -> Unit,
+    private val updateCheckState: (AppModel) -> Unit
 ) : RecyclerView.Adapter<TodoListRecyclerAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -36,6 +37,12 @@ class TodoListRecyclerAdapter(
         holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
             item.isChecked = isChecked
             onCheckChanged() // notify activity
+        }
+
+        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
+            item.isChecked = isChecked
+            updateCheckState(item) // <--- persist to DB
+            onCheckChanged()
         }
 
         holder.deleteImageView.setOnClickListener {

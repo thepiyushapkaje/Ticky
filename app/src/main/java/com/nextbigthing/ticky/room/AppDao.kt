@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface AppDao {
@@ -16,4 +17,10 @@ interface AppDao {
 
     @Delete
     fun deleteUser(vararg users: AppModel)
+
+    @Update
+    fun updateUser(appModel: AppModel)
+
+    @Query("UPDATE AppModel SET isChecked = :checked WHERE uid = :id")
+    fun updateCheckState(id: Int, checked: Boolean)
 }
